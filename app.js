@@ -3,6 +3,8 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
+var session = require('express-session')
+var MongoStore = require('connect-mongo')(session)
 var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
@@ -31,8 +33,33 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('blogsecrettoken'));
+app.use(session({
+  secret: 'blogsecrettoken',
+  cookie: {
+    maxAge: 60 * 1000
+  },
+  store: new MongoStore({
+    url: 'mongodb://127.0.0.1:27017/blog'
+  }),
+  resave: false,
+  saveUninitialized: false
+}))
+
 app.use(express.static(path.join(__dirname, 'public')));
+
+// 记录访问次数
+/* app.use((req, res, next) => {
+  if (req.session.views) {
+    req.session.views++
+    console.log(`欢迎第 ${req.session.views} 次访问`)
+    next()
+  } else {
+    req.session.views = 1
+    console.log(`欢迎首次访问`)
+    next()
+  }
+}) */
 
 app.use('/', index);
 app.use('/users', users);
