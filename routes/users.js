@@ -4,9 +4,9 @@ var User = require('./../app/models/user')
 
 // 登陆接口
 router.post('/login', function(req, res, next) {
-  var username = req.body.username,
+  var userName = req.body.userName,
       password = req.body.password
-  User.findOne({'username': username}, (err, user) => {
+  User.findOne({'userName': userName}, (err, user) => {
     if (err) {
       res.json({
         status: '1',
@@ -16,11 +16,13 @@ router.post('/login', function(req, res, next) {
     if (user) {
       if (user.password === password) {
         req.session.user = user
-        // console.log(req.session.id)
         res.json({
           status: '0',
           msg: '',
-          result: 'login success'
+          result: {
+            'user': user,
+            'sessionId': req.session.id
+          }
         })
       } else {
         res.json({
