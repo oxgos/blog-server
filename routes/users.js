@@ -2,22 +2,43 @@ var express = require('express')
 var router = express.Router()
 var User = require('./../app/models/user')
 
-// 登陆接口
-router.post('/login', function(req, res, next) {
-  var userName = req.body.userName,
-      password = req.body.password
-  User.findOne({'userName': userName}, (err, user) => {
+// 加载所有用户信息
+router.get('/', (req, res, next) => {
+  User.find({}, (err, users) => {
     if (err) {
       res.json({
-        status: '1',
+        status: '0',
         msg: err.message,
+        result: ''
+      })
+    }
+    if (users) {
+      res.json({
+        status: '1',
+        msg: '',
+        result: users
+      })
+    }
+  })
+})
+
+// 登陆接口
+router.post('/login', (req, res, next) => {
+  var account = req.body.account,
+      password = req.body.password
+  User.findOne({'account': account}, (err, user) => {
+    if (err) {
+      res.json({
+        status: '0',
+        msg: err.message,
+        result: ''
       })
     }
     if (user) {
       if (user.password === password) {
         req.session.user = user
         res.json({
-          status: '0',
+          status: '1',
           msg: '',
           result: {
             'user': user,
@@ -26,14 +47,14 @@ router.post('/login', function(req, res, next) {
         })
       } else {
         res.json({
-          status: '1',
+          status: '0',
           msg: 'password incorrect',
           result: ''
         })
       }
     } else {
         res.json({
-          status: '1',
+          status: '0',
           msg: 'user not exist',
           result: ''
       })
@@ -52,12 +73,13 @@ router.get('/logout', (req, res, next) => {
 })
 
 // 检测是否已经登陆
-router.get('/checklogin', (req, res, next) => {
-  if (req.session.user) {
+router.post('/checklogin', (req, res, next) => {
+  let sessionId = req.body.sessionId
+  if (req.session.id === sessionId) {
     res.json({
       status: '1',
       msg: '用户已登陆',
-      result: ''
+      result: req.session.user
     })
   } else {
     res.json({

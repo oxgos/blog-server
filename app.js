@@ -37,7 +37,7 @@ app.use(cookieParser('blogsecrettoken'));
 app.use(session({
   secret: 'blogsecrettoken',
   cookie: {
-    maxAge: 60 * 1000
+    maxAge: 24 * 3600 * 1000 * 7
   },
   store: new MongoStore({
     url: 'mongodb://127.0.0.1:27017/blog'
