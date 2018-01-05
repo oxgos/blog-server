@@ -22,6 +22,46 @@ router.get('/', (req, res, next) => {
   })
 })
 
+// 添加用户
+router.post('/newAccount', (req, res, next) => {
+  var account = req.body.account,
+     username = req.body.username,
+     password = req.body.password
+  
+  User.findOne({ 'account': account }, (err, doc) => {
+    if (err) {
+      res.json({
+        status: '0',
+        msg: err.message,
+        result: ''
+      })
+    }
+    if (!doc) {
+      let newUser = {
+        account: account,
+        username: username,
+        password: password
+      }
+      let user = new User(newUser)
+      user.save((err1) => {
+        if (err1) {
+          res.json({
+            status: '0',
+            msg: err1.message,
+            result: ''
+          })
+        } else {
+          res.json({
+            status: '1',
+            msg: '用户创建成功',
+            result: ''
+          })
+        }
+      })
+    }
+  })
+})
+
 // 登陆接口
 router.post('/login', (req, res, next) => {
   var account = req.body.account,
