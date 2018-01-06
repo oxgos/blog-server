@@ -62,6 +62,37 @@ router.post('/newAccount', (req, res, next) => {
   })
 })
 
+// 删除用户
+router.delete('/delUser', (req, res, next) => {
+  let id = req.query.id
+  User.findOne({ _id: id }, (err, user) => {
+    if (err) {
+      res.json({
+        status: '0',
+        msg: err.message,
+        result: ''
+      })
+    }
+    if (user) {
+      user.remove((err1) => {
+        if (err1) {
+          res.json({
+            status: '0',
+            msg: err1.message,
+            result: ''
+          })
+        } else {
+          res.json({
+            status: '1',
+            msg: '删除用户成功',
+            result: ''
+          })
+        }
+      })
+    }
+  })
+})
+
 // 登陆接口
 router.post('/login', (req, res, next) => {
   var account = req.body.account,

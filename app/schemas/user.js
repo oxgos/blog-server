@@ -31,7 +31,7 @@ var UserSchema = new mongoose.Schema({
     }
 })
 
-UserSchema.pre('save', (next) => {
+UserSchema.pre('save', function(next) {
     if (this.isNew) {
         this.meta.createAt = this.meta.updateAt = Date.now()
     } else {
