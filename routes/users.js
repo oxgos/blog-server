@@ -93,6 +93,80 @@ router.delete('/delUser', (req, res, next) => {
   })
 })
 
+// 修改用户权限
+router.post('/modifyRole', (req, res, next) => {
+  let role = req.body.role
+  let id = req.body.id
+  User.findOne({ _id: id }, (err, user) => {
+    if (err) {
+      res.json({
+        status: '0',
+        msg: err.message,
+        result: ''
+      })
+    }
+    if (user) {
+      if (user.role >= 50) {
+        res.json({
+          status: '0',
+          msg: '权限不够，不能修改',
+          result: ''
+        })
+      } else {
+        user.role = role
+        user.save(err1 => {
+          if (err1) {
+            res.json({
+              status: '0',
+              msg: err1.message,
+              result: ''
+            })
+          } else {
+            res.json({
+              status: '1',
+              msg: '权限修改成功',
+              result: ''
+            })
+          }
+        })
+      }
+    }
+  })
+})
+
+// 最高权限修改密码
+router.post('/adminPwd', (req, res, next) => {
+  let pwd = req.body.password
+  let id = req.body.id
+  User.findOne({ _id: id }, (err, user) => {
+    if (err) {
+      res.json({
+        status: '0',
+        msg: err.message,
+        result: ''
+      })
+    }
+    if (user) {
+      user.password = pwd
+      user.save(err1 => {
+        if (err1) {
+          res.json({
+            status: '0',
+            msg: err1.message,
+            result: ''
+          })
+        } else {
+          res.json({
+            status: '1',
+            msg: '修改密码成功',
+            result: ''
+          })
+        }
+      })
+    }
+  })
+})
+
 // 登陆接口
 router.post('/login', (req, res, next) => {
   var account = req.body.account,
