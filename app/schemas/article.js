@@ -1,11 +1,10 @@
 var mongoose = require('mongoose')
 
 var articleSchema = new mongoose.Schema({
+    type: String,
     title: String,
-    author: String,
     content: String,
     category: String,
-    tag: Array,
     meta: {
         createdAt: {
             type: Date,
@@ -24,6 +23,7 @@ articleSchema.pre('save', function(next) {
     } else {
         this.meta.updatedAt = Date.now()
     }
+    next()
 })
 
 module.exports = articleSchema
