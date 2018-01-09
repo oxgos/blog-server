@@ -39,6 +39,47 @@ router.post('/articleNew', (req, res, next) => {
     })
 })
 
+// 编辑文章
+router.post('/edit', (req, res, next) => {
+    var id = req.body.id,
+        type = req.body.type,
+        title = req.body.title,
+        htmlContent = req.body.htmlContent,
+        mdContent = req.body.mdContent,
+        category = req.body.category
+    Article.findOne({ _id: id }, (err, article) => {
+        if (err) {
+            res.json({
+                status: '0',
+                msg: err.message,
+                result: ''
+            })
+        }
+        if (article) {
+            article.type = type
+            article.title = title
+            article.htmlContent = htmlContent
+            article.mdContent = mdContent
+            article.category = category
+            article.save(err1 => {
+                if (err1) {
+                    res.json({
+                        status: '0',
+                        msg: err1.message,
+                        result: ''
+                    })
+                } else {
+                    res.json({
+                        status: '1',
+                        msg: '修改文章成功',
+                        result: ''
+                    })
+                }
+            })
+        }
+    })
+})
+
 // 文章详情
 router.get('/detail', (req, res, next) => {
     let id = req.query.id
