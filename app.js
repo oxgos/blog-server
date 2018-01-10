@@ -10,10 +10,13 @@ var bodyParser = require('body-parser')
 var index = require('./routes/index')
 var users = require('./routes/users')
 var articles = require('./routes/articles')
+var categories = require('./routes/categories')
 
 var app = express()
 
 var mongoose = require('mongoose')
+
+mongoose.Promise = global.Promise
 mongoose.connect('mongodb://127.0.0.1:27017/blog')
 mongoose.connection.on('connected', () => {
   console.log('Mongodb connected success')
@@ -65,6 +68,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/', index)
 app.use('/users', users)
 app.use('/articles', articles)
+app.use('/categories', categories)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

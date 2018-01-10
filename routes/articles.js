@@ -1,6 +1,7 @@
 var express = require('express')
 var router = express.Router()
 var Article = require('./../app/models/article')
+var Category = require('./../app/models/category')
 
 // 发表新文章
 router.post('/articleNew', (req, res, next) => {
@@ -20,18 +21,33 @@ router.post('/articleNew', (req, res, next) => {
         }
         if (!doc) {
             var newArticle = new Article(art)
-            newArticle.save((err1) => {
-                if (err1) {
+            newArticle.save((err, article) => {
+                if (err) {
                     res.json({
                         status: '0',
-                        msg: err1.message,
+                        msg: err.message,
                         result: ''
                     })
                 } else {
-                    res.json({
-                        status: '1',
-                        msg: '发表文章成功',
-                        result: ''
+                    Category.findOne({ _id: article.category }, (err, category) => {
+                        if (err) {
+                            res.json({
+                                status: '0',
+                                msg: err.message,
+                                result: ''
+                            })
+                        } else {
+                            if (category) {
+                                category.articles.push(article._id)
+                                category.save(err => {
+                                    res.json({
+                                        status: '1',
+                                        msg: '发表文章成功',
+                                        result: ''
+                                    })
+                                })
+                            }
+                        }
                     })
                 }
             })
