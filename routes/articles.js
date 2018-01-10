@@ -10,7 +10,7 @@ router.post('/articleNew', (req, res, next) => {
     art.title = req.body.title,
     art.htmlContent = req.body.htmlContent,
     art.mdContent = req.body.mdContent,
-    art.category = req.body.category
+    art.category = req.body.categoryId
     Article.findOne({ title: art.title }, (err, doc) => {
         if (err) {
             res.json({
@@ -40,11 +40,19 @@ router.post('/articleNew', (req, res, next) => {
                             if (category) {
                                 category.articles.push(article._id)
                                 category.save(err => {
-                                    res.json({
-                                        status: '1',
-                                        msg: '发表文章成功',
-                                        result: ''
-                                    })
+                                    if (err) {
+                                        res.json({
+                                            status: '0',
+                                            msg: err.message,
+                                            result: ''
+                                        })
+                                    } else {
+                                        res.json({
+                                            status: '1',
+                                            msg: '发表文章成功',
+                                            result: ''
+                                        })
+                                    }
                                 })
                             }
                         }

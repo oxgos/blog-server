@@ -55,4 +55,70 @@ router.post('/new', (req, res, next) => {
     })
 })
 
+// 修改分类
+router.post('/modify', (req, res, next) => {
+    var id = req.body.id,
+        name = req.body.name,
+        visible = req.body.visible
+    Category.findOne({ _id: id }, (err, category) => {
+        if (err) {
+            res.json({
+                status: '0',
+                msg: err.message,
+                result: ''
+            })
+        }
+        if (category) {
+            category.name = name
+            category.visible = visible
+            category.save(err => {
+                if (err) {
+                    res.json({
+                        status: '0',
+                        msg: err.message,
+                        result: ''
+                    })
+                } else {
+                    res.json({
+                        status: '1',
+                        msg: '修改分类成功',
+                        result: ''
+                    })
+                }
+            })
+        }
+    })
+})
+
+// 删除分类
+router.delete('/del', (req, res, next) => {
+    var id = req.query.id
+    Category.findOne({ _id: id }, (err, category) => {
+        if (err) {
+            res.json({
+                status: '0',
+                msg: err.message,
+                result: ''
+            })
+        }
+        if (category) {
+            category.remove(err => {
+                if (err) {
+                    res.json({
+                        status: '0',
+                        msg: err.message,
+                        result: ''
+                    })
+                } else {
+                    res.json({
+                        status: '1',
+                        msg: '删除分类成功',
+                        result: ''
+                    })
+                }
+            })
+        }
+    })
+})
+
 module.exports = router
