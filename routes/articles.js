@@ -100,6 +100,25 @@ router.post('/edit', (req, res, next) => {
             article.title = title
             article.htmlContent = htmlContent
             article.mdContent = mdContent
+            if (article.category !== category) {
+                Category.findOne({ _id: article.category }, (err, category) => {
+                    for (let i = 0; i < category.articles.length; i++) {
+                        if (category.articles[i].toString() === article._id.toString()) {
+                            category.articles.splice(i, 1)
+                        }
+                    }
+                    category.save()
+                })
+                /* Category.update({ _id: article.category }, {
+                    $pull: {
+                        articles: article._id
+                    }
+                }) */
+            }
+            Category.findOne({ _id: category }, (err, category) => {
+                category.articles.push(article._id)
+                category.save()
+            })
             article.category = category
             article.save(err1 => {
                 if (err) {
@@ -161,7 +180,7 @@ router.delete('/delete', (req, res, next) => {
             })
         }
         if (article) {
-            Category.findOne({ _id: article.category.toString() }, (err, category) => {
+            Category.findOne({ _id: article.category }, (err, category) => {
                 if (err) {
                     res.json({
                         status: '0',
