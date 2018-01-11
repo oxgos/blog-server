@@ -1,7 +1,23 @@
 var express = require('express')
 var router = express.Router()
+var mongoose = require('mongoose')
 var Article = require('./../app/models/article')
 var Category = require('./../app/models/category')
+
+// 文章列表
+router.get('/', (req, res, next) => {
+    Article
+        .find({})
+        .populate('category', 'name')
+        .exec()
+        .then(article => {
+            res.json({
+                status: '1',
+                msg: '',
+                result: article
+            })
+        })
+})
 
 // 发表新文章
 router.post('/articleNew', (req, res, next) => {
@@ -86,10 +102,10 @@ router.post('/edit', (req, res, next) => {
             article.mdContent = mdContent
             article.category = category
             article.save(err1 => {
-                if (err1) {
+                if (err) {
                     res.json({
                         status: '0',
-                        msg: err1.message,
+                        msg: err.message,
                         result: ''
                     })
                 } else {
@@ -107,22 +123,30 @@ router.post('/edit', (req, res, next) => {
 // 文章详情
 router.get('/detail', (req, res, next) => {
     let id = req.query.id
-    Article.findOne({ _id: id }, (err, article) => {
-        if (err) {
-            res.json({
-                status: '0',
-                msg: err.message,
-                result: ''
-            })
-        }
-        if (article) {
-            res.json({
-                status: '1',
-                msg: '',
-                result: article
-            })
-        }
-    })
+    Article
+        .findOne({ _id: id })
+        .populate('category', '_id')
+        .exec()
+        .then(article => {
+            Category.find({}, (err, categories) => {
+                if (err) {
+                    res.json({
+                        status: '0',
+                        msg: err.message,
+                        result: ''
+                    })
+                } else {
+                    res.json({
+                        status: '1',
+                        msg: '',
+                        result: {
+                            'article': article,
+                         'categories':categories
+                        }
+                    })
+                }
+            }) 
+        })
 })
 
 // 删除文章
@@ -137,44 +161,49 @@ router.delete('/delete', (req, res, next) => {
             })
         }
         if (article) {
-            article.remove(err1 => {
-                if (err1) {
+            Category.findOne({ _id: article.category.toString() }, (err, category) => {
+                if (err) {
                     res.json({
                         status: '0',
-                        msg: err1.message,
+                        msg: err.message,
                         result: ''
                     })
-                } else {
-                    res.json({
-                        status: '1',
-                        msg: '删除成功',
-                        result: ''
+                }
+                if (category) {
+                    for (let i = 0; i < category.articles.length; i++) {
+                        if (category.articles[i].toString() === article._id.toString()) {
+                            category.articles.splice(i, 1)
+                        }
+                    }
+                    category.save(err => {
+                        if (err) {
+                            res.json({
+                                status: '0',
+                                msg: err.message,
+                                result: ''
+                            })
+                        } else {
+                            article.remove(err => {
+                                if (err) {
+                                    res.json({
+                                        status: '0',
+                                        msg: err.message,
+                                        result: ''
+                                    })
+                                } else {
+                                    res.json({
+                                        status: '1',
+                                        msg: '删除成功',
+                                        result: ''
+                                    })
+                                }
+                            })
+                        }
                     })
                 }
             })
         }
     })
 })
-
-// 文章列表
-router.get('/', (req, res, next) => {
-    Article.find({}, (err, articles) => {
-        if (err) {
-            res.json({
-                status: '0',
-                msg: err.message,
-                result: ''
-            })
-        }
-        if (articles) {
-            res.json({
-                status: '1',
-                msg: '',
-                result: articles
-            })
-        }
-    })
-})
-
 
 module.exports = router
