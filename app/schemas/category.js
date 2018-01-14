@@ -10,6 +10,7 @@ var categorySchema = new Schema({
         type: ObjectId,
         ref: 'Article'
     }],
+    path: String,
     visible: {
         type: Boolean,
         default: true
