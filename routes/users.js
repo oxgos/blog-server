@@ -1,5 +1,7 @@
 var express = require('express')
 var router = express.Router()
+var multipartMiddleware = require('connect-multiparty')()
+var { uploadImage } = require('./../middleware/uploadImage.js')
 var User = require('./../app/models/user')
 
 // 加载所有用户信息
@@ -233,6 +235,11 @@ router.post('/checklogin', (req, res, next) => {
       result: ''
     })
   }
+})
+
+// 上传头像
+router.post('/uploadAvatar', multipartMiddleware, uploadImage, (req, res, next) => {
+  console.log(req.image)
 })
 
 module.exports = router
