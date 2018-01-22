@@ -1,10 +1,10 @@
-var mongoose = require('mongoose')
-var Schema = mongoose.Schema
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
 // 获取ObjectId,populate需用到，用于表与表的关联
-var ObjectId = Schema.Types.ObjectId
+const ObjectId = Schema.Types.ObjectId
 
-var categorySchema = new Schema({
+const categorySchema = new Schema({
     name: String,
     articles: [{
         type: ObjectId,
@@ -25,7 +25,7 @@ var categorySchema = new Schema({
             defalut: Date.now()
         }
     }
-})
+}) 
 
 categorySchema.pre('save', function() {
     if (this.isNew) {

@@ -3,6 +3,7 @@ var router = express.Router()
 var multipartMiddleware = require('connect-multiparty')()
 var { uploadImage } = require('./../middleware/uploadImage.js')
 var User = require('./../app/models/user')
+var Info = require('./../app/models/info')
 
 // 加载所有用户信息
 router.get('/', (req, res, next) => {
@@ -27,9 +28,8 @@ router.get('/', (req, res, next) => {
 // 添加用户
 router.post('/newAccount', (req, res, next) => {
   var account = req.body.account,
-     username = req.body.username,
+     // username = req.body.username,
      password = req.body.password
-  
   User.findOne({ 'account': account }, (err, doc) => {
     if (err) {
       res.json({
@@ -41,22 +41,34 @@ router.post('/newAccount', (req, res, next) => {
     if (!doc) {
       let newUser = {
         account: account,
-        username: username,
+        // username: username,
         password: password
       }
       let user = new User(newUser)
-      user.save((err1) => {
-        if (err1) {
+      let newInfo = {
+        account: user._id,
+        avatar: '',
+        job: '',
+        tel: '',
+        email: ''
+      }
+      let info = new Info(newInfo)
+      info.save((err, info) => {
+        if (err) {
           res.json({
             status: '0',
-            msg: err1.message,
+            msg: err.message,
             result: ''
           })
         } else {
-          res.json({
-            status: '1',
-            msg: '用户创建成功',
-            result: ''
+          user.info = info._id
+          user.save(err => {
+            if (err) throw err
+            res.json({
+              status: '1',
+              msg: '用户创建成功',
+              result: ''
+            })
           })
         }
       })
@@ -239,7 +251,16 @@ router.post('/checklogin', (req, res, next) => {
 
 // 上传头像
 router.post('/uploadAvatar', multipartMiddleware, uploadImage, (req, res, next) => {
+  let username = req.body.username
+  let job = req.body.job
+  let address = req.body.address
+  let tel = req.body.tel
+  let email = req.body.email
+  let avatar = req.image
   console.log(req.image)
+  res.json({
+    status: '1'
+  })
 })
 
 module.exports = router

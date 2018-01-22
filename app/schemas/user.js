@@ -1,12 +1,18 @@
-var mongoose = require('mongoose')
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+const ObjectId = Schema.Types.ObjectId
 
-var UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     account: {
         unique: true,
         type: String
     },
-    username: String,
+    // username: String,
     password: String,
+    info: {
+        type: ObjectId,
+        ref: 'Info'
+    },
     role: {
         type: Number,
         default: 0

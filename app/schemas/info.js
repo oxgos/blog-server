@@ -2,17 +2,22 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const ObjectId = Schema.Types.ObjectId
 
-const articleSchema = new Schema({
-    type: String,
-    title: String,
-    mdContent: String,
-    htmlContent: String,
-    category: {
+const InfoSchema = new Schema({
+    account: {
         type: ObjectId,
-        ref: 'Category'
+        ref: 'User'
     },
+    username: {
+        type: String,
+        default: '临时用户名'
+    },
+    avatar: String,
+    job: String,
+    address: String,
+    tel: String,
+    email: String,
     meta: {
-        createdAt: {
+        craetedAt: {
             type: Date,
             default: Date.now()
         },
@@ -23,13 +28,12 @@ const articleSchema = new Schema({
     }
 })
 
-articleSchema.pre('save', function(next) {
+InfoSchema.pre('save', function () {
     if (this.isNew) {
-        this.meta.createdAt = this.meta.updatedAt = Date.now()
+        this.meta.craetedAt = this.meta.updatedAt = Date.now()
     } else {
         this.meta.updatedAt = Date.now()
     }
-    next()
 })
 
-module.exports = articleSchema
+module.exports = InfoSchema
