@@ -1,9 +1,10 @@
 var express = require('express')
 var router = express.Router()
+var fs = require('fs')
+var path = require('path')
 var multipartMiddleware = require('connect-multiparty')()
-var {
-	uploadImage
-} = require('./../middleware/uploadImage.js')
+var { uploadImage } = require('./../middleware/uploadImage.js')
+var { handleError } = require('./../public/util/handleError.js')
 var User = require('./../app/models/user')
 var Info = require('./../app/models/info')
 
@@ -26,11 +27,8 @@ router.get('/', (req, res, next) => {
 // 添加用户
 router.post('/newAccount', (req, res, next) => {
 	var account = req.body.account,
-		// username = req.body.username,
 		password = req.body.password
-	User.findOne({
-		'account': account
-	}, (err, doc) => {
+	User.findOne({'account': account}, (err, doc) => {
 		if (err) {
 			res.json({
 				status: '0',
@@ -39,20 +37,15 @@ router.post('/newAccount', (req, res, next) => {
 			})
 		}
 		if (!doc) {
-			let newUser = {
-				account: account,
-				// username: username,
-				password: password
-			}
-			let user = new User(newUser)
 			let newInfo = {
-				account: user._id,
 				avatar: '',
 				job: '',
+				address: '',
 				tel: '',
 				email: ''
 			}
 			let info = new Info(newInfo)
+			console.log(info)
 			info.save((err) => {
 				if (err) {
 					res.json({
@@ -61,7 +54,12 @@ router.post('/newAccount', (req, res, next) => {
 						result: ''
 					})
 				} else {
-					user.info = info._id
+					let newUser = {
+						account: account,
+						password: password,
+						info: info._id
+					}
+					let user = new User(newUser)
 					user.save(err => {
 						if (err) {
 							res.json({
@@ -198,10 +196,8 @@ router.post('/adminPwd', (req, res, next) => {
 router.post('/login', (req, res, next) => {
 	var account = req.body.account,
 		password = req.body.password
-	User.findOne({
-			'account': account
-		})
-		.populate('info', 'username')
+	User.findOne({'account': account})
+		.populate('info', 'username avatar')
 		.exec()
 		.then((user) => {
 			if (user) {
@@ -260,17 +256,69 @@ router.post('/checklogin', (req, res, next) => {
 	}
 })
 
-// 上传头像
-router.post('/uploadAvatar', multipartMiddleware, uploadImage, (req, res, next) => {
+// 读取用户资料
+router.get('/getUserInfo', (req, res, next) => {
+	let infoId = req.query.infoId
+	Info.findOne({ _id: infoId }, (err, info) => {
+		if (err) {
+			handleError(err)
+		}
+		if (info) {
+			res.json({
+				status: '1',
+				msg: '',
+				result: info
+			})
+		}
+	})
+})
+
+// 上传用户资料
+router.post('/updateInfo', multipartMiddleware, uploadImage, (req, res, next) => {
+	let infoId = req.body.infoId
 	let username = req.body.username
 	let job = req.body.job
 	let address = req.body.address
 	let tel = req.body.tel
 	let email = req.body.email
-	let avatar = req.image
-	console.log(req.image)
-	res.json({
-		status: '1'
+	let avatarUrl = ''
+	if (req.avatarUrl) {
+		avatarUrl = req.avatarUrl
+	}
+	Info.findOne({ _id: infoId }, (err, info) => {
+		if (err) {
+			handleError(err)
+		}
+		if (info) {
+			if (info.avatar !== '' && (avatarUrl !== '')) {
+				let oldPath = path.join(__dirname, '../', `/public/${info.avatar}`)
+				fs.unlink(oldPath, (err) => {
+					if (err) {
+						if (err.code === 'ENOENT') {
+							console.error('myfile does not exist')
+						}
+						handleError(err)
+					}
+				})
+			}
+			info.username = username
+			info.job = job
+			info.address = address
+			info.tel = tel
+			info.email = email
+			avatarUrl && (info.avatar = avatarUrl)
+			info.save(err => {
+				if (err) {
+					handleError(err)
+				} else {
+					res.json({
+						status: '1',
+						msg: '用户资料保存成功',
+						result: ''
+					})
+				}
+			})
+		}
 	})
 })
 

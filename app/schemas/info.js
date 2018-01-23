@@ -3,10 +3,6 @@ const Schema = mongoose.Schema
 const ObjectId = Schema.Types.ObjectId
 
 const InfoSchema = new Schema({
-    account: {
-        type: ObjectId,
-        ref: 'User'
-    },
     username: {
         type: String,
         default: '临时用户名'
