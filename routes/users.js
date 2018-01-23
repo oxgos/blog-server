@@ -95,18 +95,26 @@ router.delete('/delUser', (req, res, next) => {
 			})
 		}
 		if (user) {
-			user.remove((err1) => {
-				if (err1) {
-					res.json({
-						status: '0',
-						msg: err1.message,
-						result: ''
-					})
+			Info.findOne({ _id: user.info }, (err, info) => {
+				if (err) {
+					handleError(err)
 				} else {
-					res.json({
-						status: '1',
-						msg: '删除用户成功',
-						result: ''
+					info.remove((err) => {
+						if (err) {
+							handleError(err)
+						} else {
+							user.remove((err) => {
+								if (err) {
+									handleError(err)
+								} else {
+									res.json({
+										status: '1',
+										msg: '删除用户成功',
+										result: ''
+									})
+								}
+							})
+						}
 					})
 				}
 			})
@@ -241,12 +249,21 @@ router.get('/logout', (req, res, next) => {
 // 检测是否已经登陆
 router.post('/checklogin', (req, res, next) => {
 	let sessionId = req.body.sessionId
+	let userId = req.session.user._id
 	if (req.session.id === sessionId) {
-		res.json({
-			status: '1',
-			msg: '用户已登陆',
-			result: req.session.user
-		})
+		User.findOne({ _id: userId })
+			.populate('info', 'username avatar')
+			.exec()
+			.then((user) => {
+				if (user) {
+					req.session.user = user
+					res.json({
+						status: '1',
+						msg: '用户已登陆',
+						result: user
+					})
+				}
+			})
 	} else {
 		res.json({
 			status: '0',
@@ -290,8 +307,10 @@ router.post('/updateInfo', multipartMiddleware, uploadImage, (req, res, next) =>
 			handleError(err)
 		}
 		if (info) {
+			// 用于判断是否有新上传图片
 			if (info.avatar !== '' && (avatarUrl !== '')) {
 				let oldPath = path.join(__dirname, '../', `/public/${info.avatar}`)
+				// 删除之前的图片
 				fs.unlink(oldPath, (err) => {
 					if (err) {
 						if (err.code === 'ENOENT') {
@@ -314,7 +333,7 @@ router.post('/updateInfo', multipartMiddleware, uploadImage, (req, res, next) =>
 					res.json({
 						status: '1',
 						msg: '用户资料保存成功',
-						result: ''
+						result: info
 					})
 				}
 			})
