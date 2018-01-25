@@ -11,6 +11,7 @@ exports.uploadImage = (req, res, next) => {
 		})
     } else {
         // 用于判断是否有新上传图片
+        console.log(req.files.avatar)
         if (req.files.avatar) {
             let avatarData = req.files.avatar
             let filePath = avatarData.path

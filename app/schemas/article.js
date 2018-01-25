@@ -5,8 +5,10 @@ const ObjectId = Schema.Types.ObjectId
 const articleSchema = new Schema({
     type: String,
     title: String,
+    introduce: String,
     mdContent: String,
     htmlContent: String,
+    poster: String,
     category: {
         type: ObjectId,
         ref: 'Category'

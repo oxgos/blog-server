@@ -1,6 +1,10 @@
 var express = require('express')
 var router = express.Router()
-var mongoose = require('mongoose')
+var fs = require('fs')
+var path = require('path')
+var multipartMiddleware = require('connect-multiparty')()
+var { uploadImage } = require('./../middleware/uploadImage.js')
+var { handleError } = require('./../public/util/handleError.js')
 var Article = require('./../app/models/article')
 var Category = require('./../app/models/category')
 
@@ -20,13 +24,15 @@ router.get('/', (req, res, next) => {
 })
 
 // 发表新文章
-router.post('/articleNew', (req, res, next) => {
+router.post('/articleNew', multipartMiddleware, uploadImage, (req, res, next) => {
     var art = {}
     art.type = req.body.type,
     art.title = req.body.title,
+    art.introduce = req.body.introduce,
     art.htmlContent = req.body.htmlContent,
     art.mdContent = req.body.mdContent,
     art.category = req.body.categoryId
+    art.poster = req.avatarUrl
     Article.findOne({ title: art.title }, (err, doc) => {
         if (err) {
             res.json({
@@ -75,12 +81,18 @@ router.post('/articleNew', (req, res, next) => {
                     })
                 }
             })
+        } else {
+            res.json({
+                status: '0',
+                msg: '标题重复',
+                result: ''
+            })
         }
     })
 })
 
 // 编辑文章
-router.post('/edit', (req, res, next) => {
+router.post('/edit', multipartMiddleware, uploadImage, (req, res, next) => {
     var id = req.body.id,
         type = req.body.type,
         title = req.body.title,
@@ -120,7 +132,18 @@ router.post('/edit', (req, res, next) => {
                 category.save()
             })
             article.category = category
-            article.save(err1 => {
+            if (req.avatarUrl) {
+                fs.unlink(path.join(__dirname, '../', `public/${article.poster}`), (err) => {
+                    if (err) {
+                        if (err.code === 'ENOENT') {
+                            console.error('myfile does not exist')
+                        }
+                        handleError(err)
+                    }
+                })
+                article.poster = req.avatarUrl
+            }
+            article.save(err => {
                 if (err) {
                     res.json({
                         status: '0',
@@ -160,7 +183,7 @@ router.get('/detail', (req, res, next) => {
                         msg: '',
                         result: {
                             'article': article,
-                         'categories':categories
+                            'categories':categories
                         }
                     })
                 }
