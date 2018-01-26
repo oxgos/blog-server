@@ -5,15 +5,35 @@ var { handleError } = require('./../public/util/handleError')
 
 // 文章列表
 router.get('/', (req, res, next) => {
+    // 总文章数
+    let total
+    // 页数
+    let index = req.query.index
+    // 每页数量
+    let count = 4
+    Article.find({}, (err, articles) => {
+        if (err) {
+            handleError(err)
+        }
+        total = articles.length
+    })
+    // 总页数
+    let page = Math.ceil(total / count)
     Article
         .find({})
         .populate('category', 'name')
+        .skip(count * page)
+        .limit(count)
         .exec()
-        .then(article => {
+        .then(articles => {
             res.json({
                 status: '1',
                 msg: '',
-                result: article
+                result: {
+                    articles: articles,
+                    total: total,
+                    page: page
+                }
             })
         })
 })
