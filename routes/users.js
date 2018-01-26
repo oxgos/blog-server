@@ -20,6 +20,12 @@ router.get('/', (req, res, next) => {
 					msg: '',
 					result: users
 				})
+			} else {
+				res.json({
+					status: '0',
+					msg: '没有用户',
+					result: ''
+				})
 			}
 		})
 })
@@ -45,7 +51,6 @@ router.post('/newAccount', (req, res, next) => {
 				email: ''
 			}
 			let info = new Info(newInfo)
-			console.log(info)
 			info.save((err) => {
 				if (err) {
 					res.json({
@@ -77,6 +82,12 @@ router.post('/newAccount', (req, res, next) => {
 					})
 				}
 			})
+		} else {
+			res.json({
+				status: '0',
+				msg: '用户已存在',
+				result: ''
+			})
 		}
 	})
 })
@@ -84,9 +95,7 @@ router.post('/newAccount', (req, res, next) => {
 // 删除用户
 router.delete('/delUser', (req, res, next) => {
 	let id = req.query.id
-	User.findOne({
-		_id: id
-	}, (err, user) => {
+	User.findOne({ _id: id }, (err, user) => {
 		if (err) {
 			res.json({
 				status: '0',
@@ -118,6 +127,12 @@ router.delete('/delUser', (req, res, next) => {
 					})
 				}
 			})
+		} else {
+			res.json({
+				status: '0',
+				msg: '用户不存在',
+				result: ''
+			})
 		}
 	})
 })
@@ -126,9 +141,7 @@ router.delete('/delUser', (req, res, next) => {
 router.post('/modifyRole', (req, res, next) => {
 	let role = req.body.role
 	let id = req.body.id
-	User.findOne({
-		_id: id
-	}, (err, user) => {
+	User.findOne({ _id: id }, (err, user) => {
 		if (err) {
 			res.json({
 				status: '0',
@@ -145,11 +158,11 @@ router.post('/modifyRole', (req, res, next) => {
 				})
 			} else {
 				user.role = role
-				user.save(err1 => {
-					if (err1) {
+				user.save(err => {
+					if (err) {
 						res.json({
 							status: '0',
-							msg: err1.message,
+							msg: err.message,
 							result: ''
 						})
 					} else {
@@ -161,6 +174,12 @@ router.post('/modifyRole', (req, res, next) => {
 					}
 				})
 			}
+		} else {
+			res.json({
+				status: '0',
+				msg: '用户不存在',
+				result: ''
+			})
 		}
 	})
 })
@@ -169,9 +188,7 @@ router.post('/modifyRole', (req, res, next) => {
 router.post('/adminPwd', (req, res, next) => {
 	let pwd = req.body.password
 	let id = req.body.id
-	User.findOne({
-		_id: id
-	}, (err, user) => {
+	User.findOne({ _id: id }, (err, user) => {
 		if (err) {
 			res.json({
 				status: '0',
@@ -181,11 +198,11 @@ router.post('/adminPwd', (req, res, next) => {
 		}
 		if (user) {
 			user.password = pwd
-			user.save(err1 => {
-				if (err1) {
+			user.save(err => {
+				if (err) {
 					res.json({
 						status: '0',
-						msg: err1.message,
+						msg: err.message,
 						result: ''
 					})
 				} else {
@@ -195,6 +212,12 @@ router.post('/adminPwd', (req, res, next) => {
 						result: ''
 					})
 				}
+			})
+		} else {
+			res.json({
+				status: '0',
+				msg: '用户不存在',
+				result: ''
 			})
 		}
 	})
@@ -229,7 +252,7 @@ router.post('/login', (req, res, next) => {
 			} else {
 				res.json({
 					status: '0',
-					msg: 'user not exist',
+					msg: '用户不存在',
 					result: ''
 				})
 			}
@@ -262,6 +285,12 @@ router.post('/checklogin', (req, res, next) => {
 						msg: '用户已登陆',
 						result: user
 					})
+				} else {
+					res.json({
+						status: '0',
+						msg: '用户不存在',
+						result: ''
+					})
 				}
 			})
 	} else {
@@ -285,6 +314,12 @@ router.get('/getUserInfo', (req, res, next) => {
 				status: '1',
 				msg: '',
 				result: info
+			})
+		} else {
+			res.json({
+				status: '0',
+				msg: '用户不存在',
+				result: ''
 			})
 		}
 	})
@@ -336,6 +371,12 @@ router.post('/updateInfo', multipartMiddleware, uploadImage, (req, res, next) =>
 						result: info
 					})
 				}
+			})
+		} else {
+			res.json({
+				status: '0',
+				msg: '用户不存在',
+				result: ''
 			})
 		}
 	})

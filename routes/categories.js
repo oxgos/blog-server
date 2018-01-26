@@ -15,6 +15,12 @@ router.get('/', (req, res, next) => {
                 msg: '',
                 result: doc
             })
+        } else {
+            res.json({
+                status: '0',
+                msg: '没有分类',
+                result: ''
+            })
         }
     })
 })
@@ -44,6 +50,12 @@ router.post('/new', (req, res, next) => {
                         result: ''
                     })
                 }
+            })
+        } else {
+            res.json({
+                status: '0',
+                msg: '分类已存在',
+                result: ''
             })
         }
     })
@@ -77,6 +89,12 @@ router.post('/modify', (req, res, next) => {
                     })
                 }
             })
+        } else {
+            res.json({
+                status: '0',
+                msg: '分类不存在',
+                result: ''
+            })
         }
     })
 })
@@ -99,6 +117,12 @@ router.delete('/del', (req, res, next) => {
                         result: ''
                     })
                 }
+            })
+        } else {
+            res.json({
+                status: '0',
+                msg: '分类不存在',
+                result: ''
             })
         }
     })

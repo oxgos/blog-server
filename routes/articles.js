@@ -96,6 +96,7 @@ router.post('/edit', multipartMiddleware, uploadImage, (req, res, next) => {
     var id = req.body.id,
         type = req.body.type,
         title = req.body.title,
+        introduce = req.body.introduce,
         htmlContent = req.body.htmlContent,
         mdContent = req.body.mdContent,
         category = req.body.category
@@ -110,6 +111,7 @@ router.post('/edit', multipartMiddleware, uploadImage, (req, res, next) => {
         if (article) {
             article.type = type
             article.title = title
+            article.introduce = introduce
             article.htmlContent = htmlContent
             article.mdContent = mdContent
             if (article.category !== category) {
@@ -158,7 +160,13 @@ router.post('/edit', multipartMiddleware, uploadImage, (req, res, next) => {
                     })
                 }
             })
-        }
+        } else {
+			res.json({
+				status: '0',
+				msg: '文章不存在',
+				result: ''
+			})
+		}
     })
 })
 
@@ -170,24 +178,32 @@ router.get('/detail', (req, res, next) => {
         .populate('category', '_id')
         .exec()
         .then(article => {
-            Category.find({}, (err, categories) => {
-                if (err) {
-                    res.json({
-                        status: '0',
-                        msg: err.message,
-                        result: ''
-                    })
-                } else {
-                    res.json({
-                        status: '1',
-                        msg: '',
-                        result: {
-                            'article': article,
-                            'categories':categories
-                        }
-                    })
-                }
-            }) 
+            if (article) {
+                Category.find({}, (err, categories) => {
+                    if (err) {
+                        res.json({
+                            status: '0',
+                            msg: err.message,
+                            result: ''
+                        })
+                    } else {
+                        res.json({
+                            status: '1',
+                            msg: '',
+                            result: {
+                                'article': article,
+                                'categories':categories
+                            }
+                        })
+                    }
+                })
+            } else {
+                res.json({
+                    status: '0',
+                    msg: '文章不存在',
+                    result: ''
+                })
+            }
         })
 })
 
@@ -242,7 +258,19 @@ router.delete('/delete', (req, res, next) => {
                             })
                         }
                     })
+                } else {
+                    res.json({
+                        status: '0',
+                        msg: '分类不存在',
+                        result: ''
+                    })
                 }
+            })
+        } else {
+            res.json({
+                status: '0',
+                msg: '文章不存在',
+                result: ''
             })
         }
     })
