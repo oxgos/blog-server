@@ -7,22 +7,22 @@ var { handleError } = require('./../public/util/handleError')
 router.get('/', (req, res, next) => {
     // 总文章数
     let total
+    // 总页数
+    let page
     // 页数
     let index = req.query.index
     // 每页数量
     let count = 4
-    Article.find({}, (err, articles) => {
+    Article.find({}, (err, doc) => {
         if (err) {
             handleError(err)
         }
-        total = articles.length
+        total = doc.length
+        page = Math.ceil(total / count)
     })
-    // 总页数
-    let page = Math.ceil(total / count)
-    Article
-        .find({})
+    Article.find({})
         .populate('category', 'name')
-        .skip(count * page)
+        .skip(count * index)
         .limit(count)
         .exec()
         .then(articles => {
@@ -41,6 +41,11 @@ router.get('/', (req, res, next) => {
 // 文章详情
 router.get('/detail', (req, res, next) => {
     let id = req.query.id
+    Article.update({ _id: id }, { $inc: { pv: 1} }, (err) => {
+        if (err) {
+            handleError(err)
+        }
+    })
     Article.findOne({ _id: id }, (err, article) => {
         if (err) {
             handleError(err)

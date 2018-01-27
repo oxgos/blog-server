@@ -9,6 +9,10 @@ const articleSchema = new Schema({
     mdContent: String,
     htmlContent: String,
     poster: String,
+    pv: {
+        type: Number,
+        default: 0
+    },
     category: {
         type: ObjectId,
         ref: 'Category'
