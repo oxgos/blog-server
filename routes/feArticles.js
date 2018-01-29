@@ -66,4 +66,50 @@ router.get('/detail', (req, res, next) => {
     })
 })
 
+// 最新文章
+router.get('/newest', (req, res, next) => {
+    Article.find({}, null, {sort: {
+            'meta.createdAt': -1
+        }, limit: 7}, (err, articles) => {
+            if (err) {
+                handleError(err)
+            }
+            if (articles) {
+                res.json({
+                    status: '1',
+                    msg: '',
+                    result: articles
+                })
+            } else {
+                res.json({
+                    status: '0',
+                    msg: '文章不存在',
+                    result: ''
+                })
+            }
+        })
+})
+
+// 点击排行
+router.get('/pv', (req, res, next) => {
+    Article.find({}, null, { sort: { pv: -1 }, limit: 7 }, (err, articles) => {
+        if (err) {
+            handleError(err)
+        }
+        if (articles) {
+            res.json({
+                status: '1',
+                msg: '',
+                result: articles
+            })
+        } else {
+            res.json({
+                status: '0',
+                msg: '文章不存在',
+                result: ''
+            })
+        }
+    })
+})
+
 module.exports = router
