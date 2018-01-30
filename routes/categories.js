@@ -2,6 +2,9 @@ var express = require('express')
 var router = express.Router()
 var Category = require('./../app/models/category')
 var { handleError } = require('./../public/util/handleError')
+var { signRequired, adminRole } = require('./../middleware/auth.js')
+
+router.use(signRequired)
 
 // 分类列表
 router.get('/', (req, res, next) => {
@@ -26,7 +29,7 @@ router.get('/', (req, res, next) => {
 })
 
 // 新建分类
-router.post('/new', (req, res, next) => {
+router.post('/new', adminRole, (req, res, next) => {
     var obj = {}
     obj.name = req.body.name
     obj.path = req.body.path
@@ -62,7 +65,7 @@ router.post('/new', (req, res, next) => {
 })
 
 // 修改分类
-router.post('/modify', (req, res, next) => {
+router.post('/modify', adminRole, (req, res, next) => {
     var id = req.body.id,
         name = req.body.name,
         path = req.body.path,
@@ -100,7 +103,7 @@ router.post('/modify', (req, res, next) => {
 })
 
 // 删除分类
-router.delete('/del', (req, res, next) => {
+router.delete('/del', adminRole, (req, res, next) => {
     var id = req.query.id
     Category.findOne({ _id: id }, (err, category) => {
         if (err) {

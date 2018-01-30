@@ -4,9 +4,12 @@ var fs = require('fs')
 var path = require('path')
 var multipartMiddleware = require('connect-multiparty')()
 var { uploadImage } = require('./../middleware/uploadImage.js')
+var { signRequired, adminRole } = require('./../middleware/auth.js')
 var { handleError } = require('./../public/util/handleError.js')
 var Article = require('./../app/models/article')
 var Category = require('./../app/models/category')
+
+router.use(signRequired)
 
 // 文章列表
 router.get('/', (req, res, next) => {
@@ -24,7 +27,7 @@ router.get('/', (req, res, next) => {
 })
 
 // 发表新文章
-router.post('/articleNew', multipartMiddleware, uploadImage, (req, res, next) => {
+router.post('/articleNew', adminRole, multipartMiddleware, uploadImage, (req, res, next) => {
     var art = {}
     art.type = req.body.type,
     art.title = req.body.title,
@@ -92,7 +95,7 @@ router.post('/articleNew', multipartMiddleware, uploadImage, (req, res, next) =>
 })
 
 // 编辑文章
-router.post('/edit', multipartMiddleware, uploadImage, (req, res, next) => {
+router.post('/edit', adminRole, multipartMiddleware, uploadImage, (req, res, next) => {
     var id = req.body.id,
         type = req.body.type,
         title = req.body.title,
@@ -171,7 +174,7 @@ router.post('/edit', multipartMiddleware, uploadImage, (req, res, next) => {
 })
 
 // 文章详情
-router.get('/detail', (req, res, next) => {
+router.get('/detail', adminRole, (req, res, next) => {
     let id = req.query.id
     Article
         .findOne({ _id: id })
@@ -208,7 +211,7 @@ router.get('/detail', (req, res, next) => {
 })
 
 // 删除文章
-router.delete('/delete', (req, res, next) => {
+router.delete('/delete', adminRole, (req, res, next) => {
     let id = req.query.id
     Article.findOne({ _id: id }, (err, article) => {
         if (err) {

@@ -2,14 +2,16 @@ var express = require('express')
 var router = express.Router()
 var fs = require('fs')
 var path = require('path')
+var crypto = require('crypto')
 var multipartMiddleware = require('connect-multiparty')()
 var { uploadImage } = require('./../middleware/uploadImage.js')
 var { handleError } = require('./../public/util/handleError.js')
+var { signRequired, adminRole } = require('./../middleware/auth.js')
 var User = require('./../app/models/user')
 var Info = require('./../app/models/info')
 
 // 加载所有用户信息
-router.get('/', (req, res, next) => {
+router.get('/', signRequired, (req, res, next) => {
 	User.find({})
 		.populate('info', 'username')
 		.exec()
@@ -31,7 +33,7 @@ router.get('/', (req, res, next) => {
 })
 
 // 添加用户
-router.post('/newAccount', (req, res, next) => {
+router.post('/newAccount', signRequired, adminRole, (req, res, next) => {
 	var account = req.body.account,
 		password = req.body.password
 	User.findOne({'account': account}, (err, doc) => {
@@ -62,6 +64,7 @@ router.post('/newAccount', (req, res, next) => {
 					let newUser = {
 						account: account,
 						password: password,
+						pwdKey: '',
 						info: info._id
 					}
 					let user = new User(newUser)
@@ -93,7 +96,7 @@ router.post('/newAccount', (req, res, next) => {
 })
 
 // 删除用户
-router.delete('/delUser', (req, res, next) => {
+router.delete('/delUser', signRequired, adminRole, (req, res, next) => {
 	let id = req.query.id
 	User.findOne({ _id: id }, (err, user) => {
 		if (err) {
@@ -138,7 +141,7 @@ router.delete('/delUser', (req, res, next) => {
 })
 
 // 修改用户权限
-router.post('/modifyRole', (req, res, next) => {
+router.post('/modifyRole', signRequired, adminRole, (req, res, next) => {
 	let role = req.body.role
 	let id = req.body.id
 	User.findOne({ _id: id }, (err, user) => {
@@ -185,7 +188,7 @@ router.post('/modifyRole', (req, res, next) => {
 })
 
 // 最高权限修改密码
-router.post('/adminPwd', (req, res, next) => {
+router.post('/adminPwd', signRequired, adminRole, (req, res, next) => {
 	let pwd = req.body.password
 	let id = req.body.id
 	User.findOne({ _id: id }, (err, user) => {
@@ -197,21 +200,28 @@ router.post('/adminPwd', (req, res, next) => {
 			})
 		}
 		if (user) {
-			user.password = pwd
-			user.save(err => {
-				if (err) {
-					res.json({
-						status: '0',
-						msg: err.message,
-						result: ''
+			crypto.randomBytes(16, (err, buf) => {
+				let salt = buf.toString('hex')
+				user.pwdKey = salt
+				crypto.pbkdf2(pwd, salt, 4096, 16, 'sha1', (err, secret) => {
+					if (err) throw err
+					user.password = secret.toString('hex')
+					user.save(err => {
+						if (err) {
+							res.json({
+								status: '0',
+								msg: err.message,
+								result: ''
+							})
+						} else {
+							res.json({
+								status: '1',
+								msg: '修改密码成功',
+								result: ''
+							})
+						}
 					})
-				} else {
-					res.json({
-						status: '1',
-						msg: '修改密码成功',
-						result: ''
-					})
-				}
+				})
 			})
 		} else {
 			res.json({
@@ -232,23 +242,26 @@ router.post('/login', (req, res, next) => {
 		.exec()
 		.then((user) => {
 			if (user) {
-				if (user.password === password) {
-					req.session.user = user
-					res.json({
-						status: '1',
-						msg: '',
-						result: {
-							'user': user,
-							'sessionId': req.session.id
-						}
-					})
-				} else {
-					res.json({
-						status: '0',
-						msg: 'password incorrect',
-						result: ''
-					})
-				}
+				user.comparePwd(password, (err, isMatch) => {
+					if (err) throw err
+					if (isMatch) {
+						req.session.user = user
+						res.json({
+							status: '1',
+							msg: '',
+							result: {
+								'user': user,
+								'sessionId': req.session.id
+							}
+						})
+					} else {
+						res.json({
+							status: '0',
+							msg: 'password incorrect',
+							result: ''
+						})
+					}
+				})
 			} else {
 				res.json({
 					status: '0',
@@ -303,7 +316,7 @@ router.post('/checklogin', (req, res, next) => {
 })
 
 // 读取用户资料
-router.get('/getUserInfo', (req, res, next) => {
+router.get('/getUserInfo', signRequired, adminRole, (req, res, next) => {
 	let infoId = req.query.infoId
 	Info.findOne({ _id: infoId }, (err, info) => {
 		if (err) {
@@ -326,7 +339,7 @@ router.get('/getUserInfo', (req, res, next) => {
 })
 
 // 上传用户资料
-router.post('/updateInfo', multipartMiddleware, uploadImage, (req, res, next) => {
+router.post('/updateInfo', signRequired, multipartMiddleware, uploadImage, (req, res, next) => {
 	let infoId = req.body.infoId
 	let username = req.body.username
 	let job = req.body.job
