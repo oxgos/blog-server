@@ -20,7 +20,8 @@ router.get('/', (req, res, next) => {
         total = doc.length
         page = Math.ceil(total / count)
     })
-    Article.find({})
+    Article
+        .find({}, null, {sort: {'meta.createdAt': -1 }})
         .populate('category', 'name')
         .skip(count * index)
         .limit(count)

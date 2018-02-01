@@ -13,7 +13,7 @@ var Info = require('./../app/models/info')
 // 加载所有用户信息
 router.get('/', signRequired, (req, res, next) => {
 	User.find({})
-		.populate('info', 'username')
+		.populate('info', '_id username')
 		.exec()
 		.then((users) => {
 			if (users) {

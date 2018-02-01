@@ -5,7 +5,7 @@ var { handleError } = require('./../public/util/handleError')
 
 router.get('/author', (req, res, next) => {
     User
-        .findOne({account: 'admin'})
+        .findOne({account: 'gjw'})
         .populate('info')
         .exec()
         .then(user => {
